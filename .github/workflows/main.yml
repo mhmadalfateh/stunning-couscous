@@ -1,0 +1,52 @@
+      - name: Fix Android project structure
+        run: |
+          PROJECT_DIR="extracted/FatehMessenger"
+
+          mkdir -p "$PROJECT_DIR/app/src/main"
+
+          mv "$PROJECT_DIR/AndroidManifest.xml" \
+             "$PROJECT_DIR/app/src/main/"
+
+          mkdir -p "$PROJECT_DIR/app/src/main/java"
+
+          mv "$PROJECT_DIR/MainActivity.kt" \
+             "$PROJECT_DIR/app/src/main/java/"
+
+          if [ -f "$PROJECT_DIR/styles.xml" ]; then
+            mkdir -p "$PROJECT_DIR/app/src/main/res/values"
+            mv "$PROJECT_DIR/styles.xml" \
+               "$PROJECT_DIR/app/src/main/res/values/"
+          fi
+
+          cat > "$PROJECT_DIR/app/build.gradle.kts" <<'EOF'
+          plugins {
+              id("com.android.application")
+              id("org.jetbrains.kotlin.android")
+          }
+
+          android {
+              namespace = "com.fateh.messenger"
+              compileSdk = 35
+
+              defaultConfig {
+                  applicationId = "com.fateh.messenger"
+                  minSdk = 23
+                  targetSdk = 35
+                  versionCode = 1
+                  versionName = "1.0"
+              }
+          }
+
+          dependencies {
+              implementation("androidx.core:core-ktx:1.15.0")
+              implementation("androidx.appcompat:appcompat:1.7.0")
+          }
+          EOF
+
+          echo "Project files arranged:"
+          find "$PROJECT_DIR" -maxdepth 6 -type f
+
+      - name: Build APK
+        run: |
+          cd extracted/FatehMessenger
+          gradle assembleDebug
